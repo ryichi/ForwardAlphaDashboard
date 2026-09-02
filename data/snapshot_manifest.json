@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "status": "OFFICIAL",
   "market_key": "2026-09-01",
   "snapshot_id": "SNAP_20260901_fc3af8ed4eba_bc8e4035ad25",
@@ -21,9 +21,15 @@
   "production_model_changed": false,
   "risk_role": "REPORT_ONLY",
   "risk_score_universe": "FORMAL_ACTIVE_UNIVERSE",
-  "model_policy": "five_model_policy_v561.valuation_method_for",
+  "model_strategy": "5.6.2-FIVE-MODEL-PARALLEL-CONSENSUS-LT-AUDIT-ONLY",
+  "report_schema": "5.6.6-CROSS-SECTOR-COMPARABLE-ALPHA-REPORT",
   "source_run": 33590246911,
-  "source_snapshot_sha256": "bc8e4035ad25ba0357394b942ab1327e25c9248848463f793962f62b55f44a8a",
-  "source_input_sha256": "",
-  "source_xlsx_sha256": "df80ea491b9d0c95cdb09e81a935b0a436f40434b30b909b3b5b61f5355c0b29"
+  "source_raw_input_sha256": "30fe2d69c207961eb8b5332a4820faefd709aa9cc93c2f6e3bf8163b446bd07f",
+  "source_model_input_sha256": "fc3af8ed4eba0c06032a9c09e3ce03d29d9723083fab33aaf65fa16b82319a74",
+  "source_snapshot_payload_sha256": "bc8e4035ad25ba0357394b942ab1327e25c9248848463f793962f62b55f44a8a",
+  "source_base_xlsx": "ForwardAlpha_Result_2026-09-01_SNAP_20260901_fc3af8ed4eba_bc8e4035ad25.xlsx",
+  "source_base_xlsx_sha256": "df80ea491b9d0c95cdb09e81a935b0a436f40434b30b909b3b5b61f5355c0b29",
+  "source_readable_xlsx": "ForwardAlpha_Result_latest.xlsx",
+  "source_readable_xlsx_sha256": "90cebd2f81e43f6bfc618aedcb8a50599c217fd8b6d6c2366252c63acb234ce9",
+  "readability_derived_from_sha256": "df80ea491b9d0c95cdb09e81a935b0a436f40434b30b909b3b5b61f5355c0b29"
 }
