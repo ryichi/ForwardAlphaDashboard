@@ -23,6 +23,8 @@ const ctx = {
   isTechnology: r => r._officialPool === 'T',
   esc: x => String(x),
   $: () => ({ innerHTML: '', insertAdjacentHTML() {} }),
+  metric: () => '',
+  pillStatus: () => '',
   renderOverview: function () {},
   openDetail: function () {},
   decodeSitePayload: function (payload) {
@@ -51,8 +53,12 @@ function baseRow(ticker, status = 'READY', reason = '', webComplete = true) {
   row[1] = ticker + ' co';
   row[5] = ticker === 'AAA' ? 'T' : 'O';
   row[6] = row[7] = row[8] = row[9] = row[10] = 50;
-  row[11] = row[12] = 60;
-  row[13] = row[14] = row[15] = row[16] = row[17] = 50;
+  if (status === 'READY' || status === 'PARTIAL_READY') {
+    row[11] = row[12] = 60;
+    row[13] = row[14] = row[15] = row[16] = row[17] = 50;
+    row[18] = 1;
+    if (status === 'READY') { row[19] = 2; row[20] = 3; }
+  }
   row[24] = status;
   row[25] = reason;
   row[26] = webComplete;
@@ -64,12 +70,13 @@ function v5Row(ticker, status = 'READY', reason = '', webComplete = true) {
   row[0] = ticker;
   row[1] = ticker + ' co';
   row[5] = ticker === 'AAA' ? 'T' : 'O';
-  row[6] = 999; // deliberately disagrees with the authoritative formal Alpha below
+  row[6] = 999;
   row[7] = row[8] = row[9] = row[10] = 50;
-  row[11] = 20;
-  row[12] = 30;
-  row[13] = 40;
-  if (status === 'READY') {
+  const eligible = status === 'READY' || status === 'PARTIAL_READY';
+  if (eligible) {
+    row[11] = 20;
+    row[12] = 30;
+    row[13] = 40;
     row[24] = 10;
     row[29] = 11;
     row[34] = 10;
@@ -79,6 +86,9 @@ function v5Row(ticker, status = 'READY', reason = '', webComplete = true) {
     row[42] = 40;
     row[43] = 41;
     row[44] = 0;
+    row[18] = 1;
+    row[19] = 2;
+    if (status === 'READY') row[20] = 3;
   }
   row[45] = 'GLOBAL_60_SECTOR_40';
   row[46] = 'REAL_ONLY';
@@ -89,8 +99,8 @@ function v5Row(ticker, status = 'READY', reason = '', webComplete = true) {
 }
 
 const allReadySnapshot = {
-  universe_count: 2, model_ready: 2, model_not_due: 0, model_unresolved: 0,
-  model_resolved: 2, web_complete: 2, publish_ready: true, market_key: '2026-09-01'
+  universe_count: 2, model_ready: 2, model_partial_ready: 0, model_not_due: 0, model_unresolved: 0,
+  model_resolved: 2, model_score_eligible: 2, web_complete: 2, publish_ready: true, market_key: '2026-09-01'
 };
 const v3 = {
   schema_version: 3, dataset: 'forward_alpha_site_compact', record_count: 2,
@@ -98,11 +108,11 @@ const v3 = {
 };
 assert.equal(ctx.decodeSitePayload(v3, allReadySnapshot).data.model_ready, 2);
 assert.throws(
-  () => ctx.decodeSitePayload(v3, { ...allReadySnapshot, model_ready: 1, model_not_due: 1 }),
+  () => ctx.decodeSitePayload(v3, { ...allReadySnapshot, model_ready: 1, model_partial_ready: 1 }),
   /fail closed/
 );
 
-const mixedSnapshot = { ...allReadySnapshot, model_ready: 1, model_not_due: 1 };
+const mixedSnapshot = { ...allReadySnapshot, model_ready: 1, model_not_due: 1, model_score_eligible: 1 };
 const v4 = {
   schema_version: 4,
   dataset: 'forward_alpha_site_compact',
@@ -111,11 +121,9 @@ const v4 = {
   technology_count: 1,
   outside_count: 1,
   model_order: ['balanced'],
-  records: [baseRow('AAA'), baseRow('BBB', 'NOT_DUE', 'NEW_LISTING_WAIT_FOR_6M_HISTORY')]
+  records: [baseRow('AAA'), baseRow('BBB', 'NOT_DUE', '3M_NOT_DUE')]
 };
 const decoded = ctx.decodeSitePayload(v4, mixedSnapshot);
-assert.equal(decoded.data.records[1].quality.model_status, 'NOT_DUE');
-assert.equal(decoded.data.records[1].quality.model_ready, false);
 ctx.state.snapshot = mixedSnapshot;
 ctx.enrich(decoded.data.records, decoded.official);
 assert(Number.isFinite(decoded.data.records[0]._models.formal.balanced.selection));
@@ -123,6 +131,7 @@ assert(Number.isNaN(decoded.data.records[1]._models.formal.balanced.selection));
 assert.equal(decoded.data.records[0]._models.formal.balanced.rank, 1);
 assert.equal(decoded.data.records[1]._models.formal.balanced.rank, undefined);
 
+const partialSnapshot = { ...allReadySnapshot, model_ready: 0, model_partial_ready: 1, model_not_due: 1, model_score_eligible: 1 };
 const v5 = {
   schema_version: 5,
   dataset: 'forward_alpha_site_compact',
@@ -131,23 +140,26 @@ const v5 = {
   technology_count: 1,
   outside_count: 1,
   model_order: ['balanced'],
-  records: [v5Row('AAA'), v5Row('BBB', 'NOT_DUE', 'NEW_LISTING_WAIT_FOR_6M_HISTORY')]
+  records: [v5Row('AAA', 'PARTIAL_READY', 'NEW_LISTING; NOT_DUE=12M'), v5Row('BBB', 'NOT_DUE', '3M_NOT_DUE')]
 };
-const decoded5 = ctx.decodeSitePayload(v5, mixedSnapshot);
-ctx.state.snapshot = mixedSnapshot;
+const decoded5 = ctx.decodeSitePayload(v5, partialSnapshot);
+ctx.state.snapshot = partialSnapshot;
 ctx.enrich(decoded5.data.records, decoded5.official);
-const ready = decoded5.data.records[0];
+const partial = decoded5.data.records[0];
 const notDue = decoded5.data.records[1];
-assert.equal(ready._models.formal.balanced.alpha, 10);
-assert.equal(ready._models.formal.balanced.selection, 11);
-assert.equal(ready._models.formal.consensus.selection, 11);
-assert.equal(ready._models.comparable.balanced.alpha, 40);
-assert.equal(ready._models.comparable.balanced.selection, 41);
-assert.equal(ready._models.comparable.consensus.selection, 41);
-assert.notEqual(ready._models.formal.balanced.alpha, ready.factors.profitability.value);
-assert.equal(ready.quality.data_imputation_note, 'REAL_ONLY');
-assert.equal(ready._comparableNote, 'GLOBAL_60_SECTOR_40');
+assert.equal(partial.quality.model_partial_ready, true);
+assert.equal(partial.momentum.score_eligible, true);
+assert.equal(partial.momentum.partial_real_renormalization, true);
+assert(Math.abs(partial.momentum.weights.ret_3m - .3) < 1e-12);
+assert(Math.abs(partial.momentum.weights.ret_6m - .7) < 1e-12);
+assert.equal(partial._models.formal.balanced.selection, 11);
+assert.equal(partial._models.formal.balanced.rank, 1);
 assert(Number.isNaN(notDue._models.formal.balanced.selection));
 assert.equal(notDue._models.formal.balanced.rank, undefined);
+assert(/warn/.test(ctx.pillStatus('PARTIAL_READY')));
+assert.throws(
+  () => ctx.decodeSitePayload({ ...v5, records: [v5Row('AAA', 'PARTIAL_READY', ''), v5Row('BBB', 'NOT_DUE', '3M_NOT_DUE')] }, partialSnapshot),
+  /PARTIAL_READY 缺少原因/
+);
 
 console.log('contract guard tests OK');

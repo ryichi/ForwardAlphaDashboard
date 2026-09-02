@@ -7,19 +7,37 @@
   const legacyDecode = decodeSitePayload;
   const legacyRenderOverview = renderOverview;
   const legacyOpenDetail = openDetail;
+  const SCORE_ELIGIBLE = new Set(['READY', 'PARTIAL_READY']);
+  const BASE_MOMENTUM_WEIGHTS = { ret_3m: .15, ret_6m: .35, ret_12m: .50 };
 
   const snapshotUniverse = s => Number(s.universe_count || s.formal_universe || 0);
   const snapshotProvesAllReady = (s, count) =>
     Number(s.model_ready || 0) === count &&
+    Number(s.model_partial_ready || 0) === 0 &&
     Number(s.model_not_due || 0) === 0 &&
     Number(s.model_unresolved || 0) === 0 &&
     Number(s.web_complete || 0) === count &&
     Boolean(s.publish_ready);
+  const scoreEligible = r => SCORE_ELIGIBLE.has(modelStatus(r));
 
   function statusReason(r) {
     if (r.quality?.model_status === 'NOT_DUE') return (r.quality.not_due || []).join('; ') || r.quality.reason || '';
     if (r.quality?.model_status === 'UNRESOLVED') return (r.quality.blockers || []).join('; ') || r.quality.reason || '';
     return r.quality?.reason || '';
+  }
+
+  function effectiveMomentumWeights(status, returns, ticker) {
+    const available = Object.entries(returns).filter(([, value]) => finite(value)).map(([key]) => key);
+    if (status === 'READY') {
+      if (available.length !== 3) throw new Error(`${ticker}: READY 但 3M/6M/12M 真實 returns 不完整`);
+      return { ...BASE_MOMENTUM_WEIGHTS };
+    }
+    if (status === 'PARTIAL_READY') {
+      if (!available.length || available.length === 3) throw new Error(`${ticker}: PARTIAL_READY 必須只有部分真實 horizons`);
+      const total = available.reduce((sum, key) => sum + BASE_MOMENTUM_WEIGHTS[key], 0);
+      return Object.fromEntries(available.map(key => [key, BASE_MOMENTUM_WEIGHTS[key] / total]));
+    }
+    return {};
   }
 
   function compactRecord(row, schema, dictionaries, counts) {
@@ -39,11 +57,13 @@
     const status = String(row[statusIndex] || '').toUpperCase();
     if (!Object.prototype.hasOwnProperty.call(counts, status)) throw new Error(`${ticker}: 無效 model_status=${status}`);
     const reason = String(row[reasonIndex] || '');
-    if (status === 'NOT_DUE' && !reason) throw new Error(`${ticker}: NOT_DUE 缺少原因`);
+    if (['PARTIAL_READY', 'NOT_DUE'].includes(status) && !reason) throw new Error(`${ticker}: ${status} 缺少原因`);
     counts[status] += 1;
     const webComplete = Boolean(row[completeIndex]);
-    const returns = [ret3, ret6, ret12], full = returns.every(v => v !== null && v !== '');
-    const ready = status === 'READY', notDue = status === 'NOT_DUE';
+    const ready = status === 'READY', partial = status === 'PARTIAL_READY', notDue = status === 'NOT_DUE';
+    const eligible = ready || partial;
+    const returns = { ret_3m: ret3, ret_6m: ret6, ret_12m: ret12 };
+    const weights = effectiveMomentumWeights(status, returns, ticker);
     const record = {
       ticker, company,
       taxonomy: { sector: sectors[sectorI] || '', industry: industries[industryI] || '', subindustry: subs[subI] || '' },
@@ -56,20 +76,22 @@
       },
       momentum: {
         ret_3m: ret3, ret_6m: ret6, ret_12m: ret12,
-        weights: ready ? { ret_3m: .15, ret_6m: .35, ret_12m: .50 } : {},
+        weights,
         status,
-        history_status: ready ? (full ? 'FULL_READY' : 'PARTIAL_READY') : status,
+        history_status: ready ? 'FULL_READY' : status,
         history_age_days: null,
-        partial_real_renormalization: ready && !full,
+        partial_real_renormalization: partial,
         reason,
-        score_eligible: ready,
+        score_eligible: eligible,
         web_valid: status !== 'UNRESOLVED'
       },
       quality: {
         model_ready: ready,
+        model_partial_ready: partial,
         model_not_due: notDue,
         model_status: status,
         reason,
+        partial_ready: partial && reason ? [reason] : [],
         not_due: notDue && reason ? [reason] : [],
         blockers: status === 'UNRESOLVED' && reason ? [reason] : [],
         web_complete: webComplete,
@@ -108,21 +130,20 @@
       throw new Error('Compact payload 與 Snapshot Universe 數量不一致');
     }
 
-    // V3 did not carry per-ticker status. It is safe only when the authoritative
-    // Snapshot mathematically proves that every record is READY. Any NOT_DUE/UNRESOLVED
-    // snapshot must upgrade to V4+ with explicit row status; otherwise fail closed.
     if (schema === 3) {
       if (!snapshotProvesAllReady(snapshot, count)) {
         throw new Error('Compact V3 缺少逐檔 model_status；非全 READY Snapshot 必須使用 V4，已 fail closed');
       }
       const decoded = legacyDecode(payload, snapshot);
       decoded.data.model_ready = Number(snapshot.model_ready || 0);
+      decoded.data.model_partial_ready = 0;
       decoded.data.model_not_due = Number(snapshot.model_not_due || 0);
+      decoded.data.model_score_eligible = Number(snapshot.model_ready || 0);
       decoded.data.model_resolved = Number(snapshot.model_resolved || count);
       decoded.data.model_unresolved = Number(snapshot.model_unresolved || 0);
       decoded.data.web_complete = Number(snapshot.web_complete || 0);
       decoded.data.publish_ready = Boolean(snapshot.publish_ready);
-      decoded.data.records.forEach(r => { r.quality.reason = ''; });
+      decoded.data.records.forEach(r => { r.quality.reason = ''; r.quality.model_partial_ready = false; });
       return decoded;
     }
 
@@ -130,7 +151,7 @@
 
     const d = payload.dictionaries || {};
     const records = [], officialRecords = [];
-    const counts = { READY: 0, NOT_DUE: 0, UNRESOLVED: 0 };
+    const counts = { READY: 0, PARTIAL_READY: 0, NOT_DUE: 0, UNRESOLVED: 0 };
     let webComplete = 0;
 
     for (const row of payload.records) {
@@ -142,10 +163,11 @@
 
     const expected = {
       READY: Number(snapshot.model_ready || 0),
+      PARTIAL_READY: Number(snapshot.model_partial_ready || 0),
       NOT_DUE: Number(snapshot.model_not_due || 0),
       UNRESOLVED: Number(snapshot.model_unresolved || 0)
     };
-    if (counts.READY !== expected.READY || counts.NOT_DUE !== expected.NOT_DUE || counts.UNRESOLVED !== expected.UNRESOLVED) {
+    if (Object.keys(counts).some(key => counts[key] !== expected[key])) {
       throw new Error(`逐檔 status 與 Snapshot 統計不一致 rows=${JSON.stringify(counts)} snapshot=${JSON.stringify(expected)}`);
     }
     if (webComplete !== Number(snapshot.web_complete || 0)) throw new Error('逐檔 web_complete 與 Snapshot 統計不一致');
@@ -155,8 +177,9 @@
         schema_version: schema, dataset: 'universe_web', membership_source: payload.membership_source,
         universe_count: count, formal_universe: count,
         technology_count: payload.technology_count, outside_count: payload.outside_count,
-        model_ready: counts.READY, model_not_due: counts.NOT_DUE,
-        model_resolved: counts.READY + counts.NOT_DUE, model_unresolved: counts.UNRESOLVED,
+        model_ready: counts.READY, model_partial_ready: counts.PARTIAL_READY, model_not_due: counts.NOT_DUE,
+        model_score_eligible: counts.READY + counts.PARTIAL_READY,
+        model_resolved: counts.READY + counts.PARTIAL_READY + counts.NOT_DUE, model_unresolved: counts.UNRESOLVED,
         web_complete: webComplete, publish_ready: Boolean(snapshot.publish_ready),
         production_model_changed: false, blockers: [], blocker_summary: {}, records
       },
@@ -186,10 +209,11 @@
     for (const r of records) {
       const row = map.get(r.ticker), pool = row[1];
       if (!['T', 'O'].includes(pool)) throw new Error(`${r.ticker} 正式 Pool 資料缺失`);
-      const ready = modelStatus(r) === 'READY';
+      const eligible = scoreEligible(r);
       const momentum = finite(row[2]) ? Number(row[2]) : NaN;
       const comparableMomentum = finite(row[3]) ? Number(row[3]) : NaN;
-      if (ready && (!finite(momentum) || !finite(comparableMomentum))) throw new Error(`${r.ticker} READY 但正式 Momentum 資料缺失`);
+      if (eligible && (!finite(momentum) || !finite(comparableMomentum))) throw new Error(`${r.ticker} ${modelStatus(r)} 但正式 Momentum 資料缺失`);
+      if (!eligible && (finite(momentum) || finite(comparableMomentum))) throw new Error(`${r.ticker} ${modelStatus(r)} 不得暴露 Momentum 分數`);
       r._officialPool = pool;
       r._momentum = momentum;
       r._comparable = { momentum: comparableMomentum };
@@ -201,30 +225,34 @@
           const formalAlpha = finite(row[9 + i]) ? Number(row[9 + i]) : NaN;
           const formalSelection = finite(row[14 + i]) ? Number(row[14 + i]) : NaN;
           const compSelection = finite(row[22 + i]) ? Number(row[22 + i]) : NaN;
-          if (ready && (![compAlpha, formalAlpha, formalSelection, compSelection].every(Number.isFinite))) {
-            throw new Error(`${r.ticker} READY 但 ${m} Production model values 缺失`);
+          if (eligible && (![compAlpha, formalAlpha, formalSelection, compSelection].every(Number.isFinite))) {
+            throw new Error(`${r.ticker} ${modelStatus(r)} 但 ${m} Production model values 缺失`);
           }
+          if (!eligible && (finite(formalSelection) || finite(compSelection))) throw new Error(`${r.ticker} ${modelStatus(r)} 不得暴露 Selection`);
           r._models.formal[m] = { alpha: formalAlpha, selection: formalSelection };
           r._models.comparable[m] = { alpha: compAlpha, selection: compSelection };
         });
         const formalConsensus = [row[19], row[20], row[21]].map(v => finite(v) ? Number(v) : NaN);
         const comparableConsensus = [row[27], row[28], row[29]].map(v => finite(v) ? Number(v) : NaN);
-        if (ready && (![...formalConsensus, ...comparableConsensus].every(Number.isFinite))) {
-          throw new Error(`${r.ticker} READY 但 Production consensus values 缺失`);
+        if (eligible && (![...formalConsensus, ...comparableConsensus].every(Number.isFinite))) {
+          throw new Error(`${r.ticker} ${modelStatus(r)} 但 Production consensus values 缺失`);
+        }
+        if (!eligible && (finite(formalConsensus[1]) || finite(formalConsensus[2]) || finite(comparableConsensus[1]) || finite(comparableConsensus[2]))) {
+          throw new Error(`${r.ticker} ${modelStatus(r)} 不得暴露 Consensus score/divergence`);
         }
         r._models.formal.consensus = { alpha: formalConsensus[0], selection: formalConsensus[1], divergence: formalConsensus[2] };
         r._models.comparable.consensus = { alpha: comparableConsensus[0], selection: comparableConsensus[1], divergence: comparableConsensus[2] };
       } else {
         expected.forEach((m, i) => {
           const formalAlpha = alphaFromFactors(r, m), compAlpha = finite(row[4 + i]) ? Number(row[4 + i]) : NaN;
-          if (ready && (!finite(formalAlpha) || !finite(compAlpha))) throw new Error(`${r.ticker} READY 但 ${m} 正式 Alpha 缺失`);
+          if (eligible && (!finite(formalAlpha) || !finite(compAlpha))) throw new Error(`${r.ticker} ${modelStatus(r)} 但 ${m} 正式 Alpha 缺失`);
           r._models.formal[m] = {
             alpha: formalAlpha,
-            selection: ready && finite(formalAlpha) && finite(momentum) ? .7 * Number(formalAlpha) + .3 * Number(momentum) : NaN
+            selection: eligible && finite(formalAlpha) && finite(momentum) ? .7 * Number(formalAlpha) + .3 * Number(momentum) : NaN
           };
           r._models.comparable[m] = {
             alpha: compAlpha,
-            selection: ready && finite(compAlpha) && finite(comparableMomentum) ? .7 * Number(compAlpha) + .3 * Number(comparableMomentum) : NaN
+            selection: eligible && finite(compAlpha) && finite(comparableMomentum) ? .7 * Number(compAlpha) + .3 * Number(comparableMomentum) : NaN
           };
         });
         r._models.formal.consensus = consensusFrom(r._models.formal);
@@ -241,10 +269,15 @@
     for (const r of records) for (const m of [...Object.keys(MODELS), 'consensus']) delete r._models?.[scale]?.[m]?.rank;
     for (const m of [...Object.keys(MODELS), 'consensus']) {
       const arr = records
-        .filter(r => modelStatus(r) === 'READY' && finite(r._models?.[scale]?.[m]?.selection))
+        .filter(r => scoreEligible(r) && finite(r._models?.[scale]?.[m]?.selection))
         .sort((a, b) => b._models[scale][m].selection - a._models[scale][m].selection);
       arr.forEach((r, i) => { r._models[scale][m].rank = i + 1; });
     }
+  };
+
+  pillStatus = function(s) {
+    const cls = s === 'READY' ? 'ok' : ['PARTIAL_READY', 'NOT_DUE'].includes(s) ? 'warn' : 'bad';
+    return `<span class="pill ${cls}">${esc(s)}</span>`;
   };
 
   renderOverview = function() {
@@ -253,6 +286,16 @@
     const strategy = s.model_strategy || s.model_policy || '—';
     const report = s.report_schema || '—';
     $('#snapshotMeta').innerHTML = `Market Key <b>${esc(s.market_key)}</b><br>Snapshot R${s.snapshot_revision} · Strategy ${esc(strategy)}<br>Report ${esc(report)}`;
+    const total = state.records.length;
+    const eligible = Number(s.model_score_eligible ?? (Number(s.model_ready || 0) + Number(s.model_partial_ready || 0)));
+    $('#overviewMetrics').innerHTML = [
+      metric('正式母體', `${total}`, 'Mapping Active Universe'),
+      metric('可評分', `${eligible}`, 'READY + PARTIAL_READY'),
+      metric('READY', `${Number(s.model_ready || 0)}`, '完整 3M / 6M / 12M'),
+      metric('PARTIAL_READY', `${Number(s.model_partial_ready || 0)}`, '真實可用 horizons 重正規化'),
+      metric('NOT_DUE', `${Number(s.model_not_due || 0)}`, '尚未到正式 Momentum horizon'),
+      metric('Web Complete', `${Number(s.web_complete || 0)}/${total}`, `${Number(s.model_unresolved || 0)} unresolved`)
+    ].join('');
   };
 
   openDetail = function(ticker) {
