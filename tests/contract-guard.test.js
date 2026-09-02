@@ -59,6 +59,35 @@ function baseRow(ticker, status = 'READY', reason = '', webComplete = true) {
   return row;
 }
 
+function v5Row(ticker, status = 'READY', reason = '', webComplete = true) {
+  const row = Array(50).fill(null);
+  row[0] = ticker;
+  row[1] = ticker + ' co';
+  row[5] = ticker === 'AAA' ? 'T' : 'O';
+  row[6] = 999; // deliberately disagrees with the authoritative formal Alpha below
+  row[7] = row[8] = row[9] = row[10] = 50;
+  row[11] = 20;
+  row[12] = 30;
+  row[13] = 40;
+  if (status === 'READY') {
+    row[24] = 10;
+    row[29] = 11;
+    row[34] = 10;
+    row[35] = 11;
+    row[36] = 0;
+    row[37] = 41;
+    row[42] = 40;
+    row[43] = 41;
+    row[44] = 0;
+  }
+  row[45] = 'GLOBAL_60_SECTOR_40';
+  row[46] = 'REAL_ONLY';
+  row[47] = status;
+  row[48] = reason;
+  row[49] = webComplete;
+  return row;
+}
+
 const allReadySnapshot = {
   universe_count: 2, model_ready: 2, model_not_due: 0, model_unresolved: 0,
   model_resolved: 2, web_complete: 2, publish_ready: true, market_key: '2026-09-01'
@@ -93,5 +122,32 @@ assert(Number.isFinite(decoded.data.records[0]._models.formal.balanced.selection
 assert(Number.isNaN(decoded.data.records[1]._models.formal.balanced.selection));
 assert.equal(decoded.data.records[0]._models.formal.balanced.rank, 1);
 assert.equal(decoded.data.records[1]._models.formal.balanced.rank, undefined);
+
+const v5 = {
+  schema_version: 5,
+  dataset: 'forward_alpha_site_compact',
+  record_count: 2,
+  dictionaries: { sectors: [], industries: [], subindustries: [], valuation_methods: [] },
+  technology_count: 1,
+  outside_count: 1,
+  model_order: ['balanced'],
+  records: [v5Row('AAA'), v5Row('BBB', 'NOT_DUE', 'NEW_LISTING_WAIT_FOR_6M_HISTORY')]
+};
+const decoded5 = ctx.decodeSitePayload(v5, mixedSnapshot);
+ctx.state.snapshot = mixedSnapshot;
+ctx.enrich(decoded5.data.records, decoded5.official);
+const ready = decoded5.data.records[0];
+const notDue = decoded5.data.records[1];
+assert.equal(ready._models.formal.balanced.alpha, 10);
+assert.equal(ready._models.formal.balanced.selection, 11);
+assert.equal(ready._models.formal.consensus.selection, 11);
+assert.equal(ready._models.comparable.balanced.alpha, 40);
+assert.equal(ready._models.comparable.balanced.selection, 41);
+assert.equal(ready._models.comparable.consensus.selection, 41);
+assert.notEqual(ready._models.formal.balanced.alpha, ready.factors.profitability.value);
+assert.equal(ready.quality.data_imputation_note, 'REAL_ONLY');
+assert.equal(ready._comparableNote, 'GLOBAL_60_SECTOR_40');
+assert(Number.isNaN(notDue._models.formal.balanced.selection));
+assert.equal(notDue._models.formal.balanced.rank, undefined);
 
 console.log('contract guard tests OK');
