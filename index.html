@@ -31,14 +31,14 @@
 <div class="page-head"><div><span class="kicker">MARKET SNAPSHOT</span><h1>Forward Alpha 總覽</h1><p>五套 Financial Alpha 平行評分、價格動能與跨產業比較。</p></div><div class="snapshot-meta" id="snapshotMeta"></div></div>
 <div class="metric-row" id="overviewMetrics"></div>
 <div class="grid-2">
-<article class="panel"><div class="panel-head"><div><h2>五模型共識領先</h2><p>直接使用正式 V5.6.7 五模型輸出；Selection 維持 Alpha 70% + Momentum 30%。</p></div><button class="text-link" data-go="rankings">查看完整排名 →</button></div><div class="leader-list" id="consensusLeaders"></div></article>
+<article class="panel"><div class="panel-head"><div><h2>五模型共識領先</h2><p>Model Strategy 5.6.2 五模型平行共識；Selection = Financial Alpha 70% + Price Momentum 30%。</p></div><button class="text-link" data-go="rankings">查看完整排名 →</button></div><div class="leader-list" id="consensusLeaders"></div></article>
 <article class="panel"><div class="panel-head"><div><h2>模型風格雷達</h2><p>同一家公司在不同投資風格下的強弱差異。</p></div></div><div class="model-snapshot" id="modelSnapshot"></div></article>
 </div>
 <article class="panel"><div class="panel-head"><div><h2>資料新鮮度</h2><p>每項資料依自身 cadence 判斷；Raw Data 更新不等於新的 Market Snapshot。</p></div><span class="pill ok">VALID</span></div><div class="fresh-grid" id="freshnessGrid"></div></article>
 <article class="panel"><div class="panel-head"><div><h2>產業焦點</h2><p>目前正式 <span data-universe-count>—</span> 檔 Active Universe 的子產業分布與共識分數。</p></div><button class="text-link" data-go="technology">Technology →</button></div><div class="industry-overview" id="industryOverview"></div></article>
 </section>
 <section class="view" id="rankings">
-<div class="page-head"><div><span class="kicker">RANKINGS</span><h1>研究排名</h1><p>可切換五種模型、共識與跨產業可比尺度。</p></div><div class="result-meta" id="rankingCount"></div></div>
+<div class="page-head"><div><span class="kicker">RANKINGS</span><h1>研究排名</h1><p>可切換五種模型、共識與跨產業可比尺度；僅 READY 標的具有正式排名。</p></div><div class="result-meta" id="rankingCount"></div></div>
 <article class="panel no-top">
 <div class="toolbar">
 <div class="search-field"><span>⌕</span><input id="rankSearch" placeholder="搜尋 Ticker / 公司 / 子產業"/></div>
@@ -88,4 +88,6 @@
 <div class="backdrop" id="detailBackdrop"></div><aside aria-hidden="true" class="drawer" id="detailDrawer"><button class="drawer-close" id="detailClose">×</button><div id="detailContent"></div></aside>
 <div class="command-backdrop hidden" id="command"><div class="command-box"><div class="command-input"><span>⌕</span><input id="commandInput" placeholder="搜尋 Ticker、公司或子產業"/><kbd>Esc</kbd></div><div class="command-results" id="commandResults"></div></div></div>
 
-<script src="app.js"></script></body></html>
+<script src="app.js"></script>
+<script src="contract-guard.js"></script>
+</body></html>
