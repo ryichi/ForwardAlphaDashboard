@@ -1,4 +1,5 @@
 name: Validate Dashboard Readiness Contract
+# PR-only, low-cost validation for mixed-status decoder behavior.
 
 on:
   pull_request:
