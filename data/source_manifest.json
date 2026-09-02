@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "market_key": "2026-08-31",
+  "mode": "static-public-repo",
+  "sources": [
+    {
+      "dataset": "formal_270_web",
+      "as_of": "2026-08-31",
+      "freshness_status": "VALID",
+      "coverage": 1.0,
+      "cadence": "market snapshot",
+      "freshness_rule": "publish only after Formal-270 web gate passes"
+    },
+    {
+      "dataset": "price_momentum",
+      "as_of": "2026-08-31",
+      "freshness_status": "VALID",
+      "coverage": 1.0,
+      "cadence": "each completed US trading day",
+      "freshness_rule": "latest completed market key; NOT_DUE allowed for structurally new listings"
+    },
+    {
+      "dataset": "risk_90d",
+      "as_of": "2026-08-31",
+      "freshness_status": "VALID",
+      "coverage": 1.0,
+      "cadence": "model refresh",
+      "freshness_rule": "report-only; confirmed split evidence must pass validation"
+    },
+    {
+      "dataset": "comparison_metrics",
+      "as_of": "2026-08-31",
+      "freshness_status": "VALID",
+      "coverage": 1.0,
+      "cadence": "daily or provider change",
+      "freshness_rule": "current economically valid metric or approved special valuation evidence"
+    },
+    {
+      "dataset": "earnings_revision",
+      "as_of": "2026-08-31",
+      "freshness_status": "VALID",
+      "coverage": 1.0,
+      "cadence": "provider change",
+      "freshness_rule": "primary or verified same-provider secondary history"
+    }
+  ]
+}

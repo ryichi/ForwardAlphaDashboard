@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "status": "OFFICIAL",
+  "market_key": "2026-08-31",
+  "snapshot_revision": 1,
+  "snapshot_axis": "market_key",
+  "model_run_at": "2026-09-01T15:08:12Z",
+  "adopted_at": "2026-09-02T01:22:34+00:00",
+  "formal_universe": 270,
+  "model_ready": 268,
+  "model_not_due": 2,
+  "model_unresolved": 0,
+  "model_resolved": 270,
+  "web_complete": 270,
+  "publish_ready": true,
+  "production_model_changed": false,
+  "risk_role": "REPORT_ONLY",
+  "risk_score_universe": "FORMAL_270",
+  "model_policy": "five_model_policy_v561.valuation_method_for",
+  "source_run": 33523861358
+}
