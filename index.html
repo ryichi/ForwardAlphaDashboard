@@ -4,159 +4,183 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="light" />
-  <title>Forward Alpha</title>
+  <title>Forward Alpha｜投資研究儀表板</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand-wrap">
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
       <div class="brand-mark">FA</div>
-      <div>
-        <div class="brand">Forward Alpha</div>
-        <div class="brand-sub">美股前瞻因子研究</div>
-      </div>
+      <div><strong>Forward Alpha</strong><span>投資研究儀表板</span></div>
     </div>
-    <div class="snapshot-strip" id="snapshotStrip">
-      <span class="dot ok"></span><span>載入資料中…</span>
+    <nav class="side-nav" id="sideNav" aria-label="主要功能">
+      <button class="nav-item active" data-view="overview"><span class="nav-icon">▦</span>總覽</button>
+      <button class="nav-item" data-view="stocks"><span class="nav-icon">≡</span>全部標的</button>
+      <button class="nav-item" data-view="changes"><span class="nav-icon">↕</span>本次更新</button>
+      <button class="nav-item" data-view="history"><span class="nav-icon">⌁</span>歷史趨勢</button>
+      <button class="nav-item" data-view="industries"><span class="nav-icon">◫</span>產業總覽</button>
+      <button class="nav-item" data-view="about"><span class="nav-icon">i</span>資料說明</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div id="sideMarketKey">Market Key —</div>
+      <div id="sideRevision">Snapshot —</div>
+      <div class="side-status"><span class="dot ok"></span>正式資料</div>
     </div>
-  </header>
-
-  <nav class="nav-tabs" aria-label="主要導覽">
-    <button class="nav-tab active" data-view="overview">總覽</button>
-    <button class="nav-tab" data-view="stocks">全部標的</button>
-    <button class="nav-tab" data-view="industries">產業總覽</button>
-    <button class="nav-tab" data-view="quality">資料狀態</button>
-  </nav>
-
-  <main class="page">
-    <section id="overview" class="view active">
-      <div class="hero-grid">
-        <article class="hero-card primary">
-          <div class="eyebrow">正式 Market Snapshot</div>
-          <div class="hero-value" id="marketKey">—</div>
-          <div class="hero-meta" id="marketMeta">—</div>
-        </article>
-        <article class="hero-card">
-          <div class="eyebrow">模型已解析</div>
-          <div class="metric-line"><strong id="resolvedCount">—</strong><span>/ 270</span></div>
-          <div class="submetric"><span id="readyCount">—</span> READY · <span id="notDueCount">—</span> NOT_DUE</div>
-        </article>
-        <article class="hero-card">
-          <div class="eyebrow">Web Complete</div>
-          <div class="metric-line"><strong id="webComplete">—</strong><span>/ 270</span></div>
-          <div class="submetric">Blockers <span id="blockerCount">—</span></div>
-        </article>
-        <article class="hero-card">
-          <div class="eyebrow">Risk</div>
-          <div class="metric-line"><strong>REPORT</strong><span>ONLY</span></div>
-          <div class="submetric">不進正式模型權重</div>
-        </article>
-      </div>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <div class="eyebrow">市場快照</div>
-            <h2>資料新鮮度</h2>
-          </div>
-          <span class="status-pill ok" id="freshnessPill">VALID</span>
-        </div>
-        <div class="freshness-grid" id="freshnessGrid"></div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <div class="eyebrow">快速檢視</div>
-            <h2>因子分數領先標的</h2>
-          </div>
-          <button class="text-btn" data-go="stocks">查看全部 270 檔 →</button>
-        </div>
-        <div class="leader-grid" id="leaderGrid"></div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <div class="eyebrow">產業分布</div>
-            <h2>主要子產業</h2>
-          </div>
-          <button class="text-btn" data-go="industries">完整產業總覽 →</button>
-        </div>
-        <div class="industry-bars" id="industryBars"></div>
-      </section>
-    </section>
-
-    <section id="stocks" class="view">
-      <div class="toolbar">
-        <div>
-          <div class="eyebrow">Formal Universe</div>
-          <h1>全部標的</h1>
-        </div>
-        <div class="toolbar-actions">
-          <input id="stockSearch" class="search" type="search" placeholder="搜尋代號 / 公司 / 產業" />
-          <select id="statusFilter" class="select">
-            <option value="ALL">全部狀態</option>
-            <option value="READY">READY</option>
-            <option value="NOT_DUE">NOT_DUE</option>
-          </select>
-          <select id="industryFilter" class="select"><option value="ALL">全部產業</option></select>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th data-sort="ticker">代號</th>
-              <th data-sort="company">公司</th>
-              <th data-sort="subindustry">子產業</th>
-              <th data-sort="profitability">獲利能力</th>
-              <th data-sort="financial_strength">財務穩健</th>
-              <th data-sort="forward_growth">前瞻成長</th>
-              <th data-sort="earnings_revision">盈餘修正</th>
-              <th data-sort="valuation">相對估值</th>
-              <th data-sort="risk">Risk</th>
-              <th>狀態</th>
-            </tr>
-          </thead>
-          <tbody id="stockRows"></tbody>
-        </table>
-      </div>
-      <div class="table-footer" id="tableFooter"></div>
-    </section>
-
-    <section id="industries" class="view">
-      <div class="toolbar simple">
-        <div><div class="eyebrow">Taxonomy</div><h1>產業總覽</h1></div>
-      </div>
-      <div class="industry-cards" id="industryCards"></div>
-    </section>
-
-    <section id="quality" class="view">
-      <div class="toolbar simple"><div><div class="eyebrow">Web Readiness</div><h1>資料狀態</h1></div></div>
-      <div class="quality-grid" id="qualityGrid"></div>
-      <section class="panel">
-        <div class="panel-head"><div><div class="eyebrow">狀態說明</div><h2>READY / NOT_DUE</h2></div></div>
-        <div class="explain-grid">
-          <div><span class="status-pill ok">READY</span><p>模型所需的實際期間與資料已具備，可正常比較。</p></div>
-          <div><span class="status-pill amber">NOT_DUE</span><p>新上市標的尚未形成完整 Momentum 期間；不是抓取失敗，也不製造分數。</p></div>
-          <div><span class="status-pill neutral">Risk</span><p>Risk 僅供研究與比較，正式模型權重為 0。</p></div>
-        </div>
-      </section>
-    </section>
-  </main>
-
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="detailDrawer" aria-hidden="true">
-    <button class="drawer-close" id="drawerClose" aria-label="關閉">×</button>
-    <div id="drawerContent"></div>
   </aside>
 
-  <footer class="footer">
-    <div>Forward Alpha · Research dashboard</div>
-    <div>歷史以 Market Key 為軸；Collector 更新不等於新 Snapshot。</div>
-  </footer>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">總覽</h1>
+        <p id="pageSub">正式 Market Snapshot 與研究母體概況</p>
+      </div>
+      <div class="top-actions">
+        <button class="search-trigger" id="searchTrigger" title="Ctrl / ⌘ + K"><span>⌕</span><span>搜尋標的</span><kbd>Ctrl K</kbd></button>
+        <span class="official-pill"><span class="dot ok"></span>OFFICIAL</span>
+      </div>
+    </header>
 
-  <script src="app.js"></script>
+    <div class="content">
+      <section class="view active" id="overview">
+        <div class="snapshot-hero">
+          <div class="snapshot-copy">
+            <div class="eyebrow">OFFICIAL MARKET SNAPSHOT</div>
+            <h2 id="heroMarketKey">—</h2>
+            <p id="heroMeta">—</p>
+            <div class="hero-tags"><span id="heroRevision">—</span><span id="heroPolicy">—</span></div>
+          </div>
+          <div class="hero-health">
+            <div class="health-title"><span class="dot ok"></span>發布狀態正常</div>
+            <div class="health-row"><span>正式研究母體</span><b id="heroUniverse">—</b></div>
+            <div class="health-row"><span>Web Complete</span><b id="heroWebComplete">—</b></div>
+            <div class="health-row"><span>Blockers</span><b id="heroBlockers">—</b></div>
+          </div>
+        </div>
+
+        <div class="metric-grid five">
+          <article class="metric-card"><span>READY</span><strong id="readyCount">—</strong><small>可完整比較</small></article>
+          <article class="metric-card"><span>NOT_DUE</span><strong id="notDueCount">—</strong><small>新上市歷史累積中</small></article>
+          <article class="metric-card"><span>UNRESOLVED</span><strong id="unresolvedCount">—</strong><small>正式發布不可有未解項</small></article>
+          <article class="metric-card"><span>Risk 90D</span><strong id="riskReadyCount">—</strong><small>REPORT ONLY</small></article>
+          <article class="metric-card"><span>子產業</span><strong id="industryCount">—</strong><small>目前正式分類</small></article>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><div class="eyebrow">FRESHNESS MANIFEST</div><h2>資料新鮮度</h2><p>每種資料依自己的更新節奏判斷，不要求全部同一天更新。</p></div>
+            <span class="status-badge good">VALID</span>
+          </div>
+          <div class="freshness-grid" id="freshnessGrid"></div>
+        </section>
+
+        <div class="two-col">
+          <section class="panel">
+            <div class="panel-head compact"><div><div class="eyebrow">RESEARCH SNAPSHOT</div><h2>五因子概況</h2><p>顯示 270 檔目前分數分布；不是額外改寫模型權重。</p></div></div>
+            <div id="factorSummary" class="factor-summary"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head compact"><div><div class="eyebrow">ATTENTION</div><h2>資料狀態重點</h2><p>公開頁只顯示投資研究需要知道的狀態。</p></div></div>
+            <div id="attentionList" class="attention-list"></div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><div class="eyebrow">QUICK VIEW</div><h2>五因子平均領先標的</h2><p>僅作網站快速檢視，不等同任何一套正式 Selection Score。</p></div>
+            <button class="link-button" data-go="stocks">查看全部 270 檔 →</button>
+          </div>
+          <div class="leader-grid" id="leaderGrid"></div>
+        </section>
+      </section>
+
+      <section class="view" id="stocks">
+        <div class="section-heading">
+          <div><div class="eyebrow">FORMAL UNIVERSE</div><h2>全部標的</h2><p>搜尋、篩選、排序、欄位顯示與 CSV 匯出；點 Ticker 開啟完整資料。</p></div>
+          <div class="result-count" id="resultCount">—</div>
+        </div>
+        <section class="panel table-panel">
+          <div class="toolbar">
+            <div class="search-box"><span>⌕</span><input id="stockSearch" type="search" placeholder="搜尋 Ticker / 公司 / 子產業 / Sector" /></div>
+            <select id="statusFilter"><option value="ALL">全部狀態</option><option value="READY">READY</option><option value="NOT_DUE">NOT_DUE</option></select>
+            <select id="industryFilter"><option value="ALL">全部子產業</option></select>
+            <select id="valuationFilter"><option value="ALL">全部估值方法</option></select>
+            <button class="secondary-btn" id="columnBtn">欄位 ▾</button>
+            <button class="secondary-btn" id="resetFilters">清除</button>
+            <button class="primary-btn" id="exportCsv">匯出 CSV</button>
+          </div>
+          <div class="column-menu hidden" id="columnMenu"></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr>
+                <th data-col="ticker" data-sort="ticker">Ticker</th>
+                <th data-col="company" data-sort="company">公司</th>
+                <th data-col="industry" data-sort="industry">子產業</th>
+                <th data-col="status" data-sort="status">狀態</th>
+                <th data-col="profitability" class="num" data-sort="profitability">獲利能力</th>
+                <th data-col="financial_strength" class="num" data-sort="financial_strength">財務穩健</th>
+                <th data-col="forward_growth" class="num" data-sort="forward_growth">前瞻成長</th>
+                <th data-col="earnings_revision" class="num" data-sort="earnings_revision">盈餘修正</th>
+                <th data-col="valuation" class="num" data-sort="valuation">相對估值</th>
+                <th data-col="ret_3m" class="num" data-sort="ret_3m">3M</th>
+                <th data-col="ret_6m" class="num" data-sort="ret_6m">6M</th>
+                <th data-col="ret_12m" class="num" data-sort="ret_12m">12M</th>
+                <th data-col="risk" class="num" data-sort="risk">Risk</th>
+                <th data-col="valuation_method">估值方法</th>
+              </tr></thead>
+              <tbody id="stockRows"></tbody>
+            </table>
+          </div>
+          <div class="table-footer" id="tableFooter"></div>
+        </section>
+      </section>
+
+      <section class="view" id="changes">
+        <div class="section-heading"><div><div class="eyebrow">CURRENT VS PREVIOUS MARKET KEY</div><h2>本次更新</h2><p>只比較不同 Market Key 的正式 Snapshot；同日 Revision 不會被當成新一期。</p></div></div>
+        <div id="changesContent"></div>
+      </section>
+
+      <section class="view" id="history">
+        <div class="section-heading"><div><div class="eyebrow">MARKET SNAPSHOT HISTORY</div><h2>歷史趨勢</h2><p>歷史軸固定使用 Market Key，不使用 GitHub commit、Collector 時間或 fetched_at。</p></div></div>
+        <div id="historyContent"></div>
+      </section>
+
+      <section class="view" id="industries">
+        <div class="section-heading"><div><div class="eyebrow">INDUSTRY RESEARCH</div><h2>產業總覽</h2><p>依正式子產業分類統計標的數與五因子平均，可快速查看產業內標的。</p></div></div>
+        <div class="industry-layout">
+          <section class="panel"><div class="panel-head compact"><div><h2>主要子產業</h2><p>依標的數排序</p></div></div><div id="industryBars" class="industry-bars"></div></section>
+          <section class="panel"><div class="panel-head compact"><div><h2>產業清單</h2><p>點選產業直接切到全部標的並套用篩選</p></div></div><div id="industryCards" class="industry-cards"></div></section>
+        </div>
+      </section>
+
+      <section class="view" id="about">
+        <div class="section-heading"><div><div class="eyebrow">DATA CONTRACT</div><h2>資料說明</h2><p>公開網站的版本、資料時點與欄位定義。</p></div></div>
+        <div class="about-grid">
+          <article class="panel explain"><h3>Market Snapshot</h3><p>只有新的 Market Key、完整模型運算、資料採用檢查通過，才形成新的歷史快照。同 Market Key 重跑只增加 Revision。</p></article>
+          <article class="panel explain"><h3>Freshness Manifest</h3><p>價格、估值、分析師修正、財報與低頻研究各自有更新週期。VALID / PARTIAL_VALID / NOT_DUE 可依契約採用；必要來源 EXPIRED 則阻擋發布。</p></article>
+          <article class="panel explain"><h3>五個財務因子</h3><p>獲利能力、財務穩健、前瞻成長、盈餘修正、相對估值皆直接讀正式資料。網站不自行改寫正式模型權重。</p></article>
+          <article class="panel explain"><h3>Momentum</h3><p>使用真實 3M / 6M / 12M 價格歷史。新上市標的在資料尚未形成時標記 NOT_DUE，不補 0、不補中位數。</p></article>
+          <article class="panel explain"><h3>Risk 90D</h3><p>Risk Score、90D 年化波動與 Downside Deviation 只供研究參考；正式角色為 REPORT_ONLY。</p></article>
+          <article class="panel explain"><h3>估值方法</h3><p>不同產業可使用 Forward P/E、EV/EBITDA、EV/Sales、P/B、P/AFFO 或特殊估值。詳細頁會顯示實際採用指標與權重。</p></article>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="drawer" id="detailDrawer" aria-hidden="true">
+  <button class="drawer-close" id="drawerClose" aria-label="關閉">×</button>
+  <div id="drawerContent"></div>
+</aside>
+
+<div class="command-backdrop hidden" id="commandBackdrop">
+  <div class="command-box">
+    <div class="command-input"><span>⌕</span><input id="commandSearch" placeholder="搜尋 Ticker 或公司名稱" autocomplete="off" /></div>
+    <div class="command-results" id="commandResults"></div>
+    <div class="command-hint">Enter 開啟 · Esc 關閉</div>
+  </div>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
