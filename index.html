@@ -12,7 +12,7 @@
 <header class="site-header">
 <div class="header-inner">
 <div class="brand-wrap"><div class="brand-mark">FA</div><div><div class="brand-name">Forward Alpha</div><div class="brand-sub">美股前瞻因子研究</div></div></div>
-<div class="header-actions"><button class="search-btn" id="globalSearchBtn">搜尋股票 <kbd>Ctrl K</kbd></button><span class="official"><i></i> OFFICIAL</span></div>
+<div class="header-actions"><button aria-label="搜尋股票" class="search-btn" id="globalSearchBtn">搜尋股票 <kbd>Ctrl K</kbd></button><span class="official"><i></i> 正式資料</span></div>
 </div>
 </header>
 <nav class="main-nav" id="mainNav">
@@ -28,38 +28,38 @@
 </nav>
 <main class="page-shell">
 <section class="view active" id="overview">
-<div class="page-head"><div><span class="kicker">MARKET SNAPSHOT</span><h1>Forward Alpha 總覽</h1><p>五套 Financial Alpha 平行評分、價格動能與跨產業比較。</p></div><div class="snapshot-meta" id="snapshotMeta"></div></div>
+<div class="page-head"><div><span class="kicker">市場快照</span><h1>Forward Alpha 總覽</h1><p>五套財務模型、價格動能與跨產業比較。</p></div><div class="snapshot-meta" id="snapshotMeta"></div></div>
 <div class="metric-row" id="overviewMetrics"></div>
 <div class="grid-2">
-<article class="panel"><div class="panel-head"><div><h2>五模型共識領先</h2><p>Model Strategy 5.6.2 五模型平行共識；Selection = Financial Alpha 70% + Price Momentum 30%。</p></div><button class="text-link" data-go="rankings">查看完整排名 →</button></div><div class="leader-list" id="consensusLeaders"></div></article>
+<article class="panel"><div class="panel-head"><div><h2>五模型共識領先</h2><p>綜合評分由 70% 財務評分與 30% 價格動能組成。</p></div><button class="text-link" data-go="rankings">查看完整排名 →</button></div><div class="leader-list" id="consensusLeaders"></div></article>
 <article class="panel"><div class="panel-head"><div><h2>模型風格雷達</h2><p>同一家公司在不同投資風格下的強弱差異。</p></div></div><div class="model-snapshot" id="modelSnapshot"></div></article>
 </div>
-<article class="panel"><div class="panel-head"><div><h2>資料新鮮度</h2><p>每項資料依自身 cadence 判斷；Raw Data 更新不等於新的 Market Snapshot。</p></div><span class="pill ok">VALID</span></div><div class="fresh-grid" id="freshnessGrid"></div></article>
-<article class="panel"><div class="panel-head"><div><h2>產業焦點</h2><p>目前正式 <span data-universe-count>—</span> 檔 Active Universe 的子產業分布與共識分數。</p></div><button class="text-link" data-go="technology">Technology →</button></div><div class="industry-overview" id="industryOverview"></div></article>
+<article class="panel"><div class="panel-head"><div><h2>資料新鮮度</h2><p>各類資料依自己的更新頻率判斷；單一來源更新不代表已產生新的正式市場快照。</p></div><span class="pill ok">有效</span></div><div class="fresh-grid" id="freshnessGrid"></div></article>
+<article class="panel"><div class="panel-head"><div><h2>產業焦點</h2><p>目前正式 <span data-universe-count>—</span> 檔研究範圍的產業分布與共識分數。</p></div><button class="text-link" data-go="technology">查看科技股 →</button></div><div class="industry-overview" id="industryOverview"></div></article>
 </section>
 <section class="view" id="rankings">
-<div class="page-head"><div><span class="kicker">RANKINGS</span><h1>研究排名</h1><p>可切換五種模型、共識與跨產業可比尺度；僅 READY 標的具有正式排名。</p></div><div class="result-meta" id="rankingCount"></div></div>
+<div class="page-head"><div><span class="kicker">研究排名</span><h1>研究排名</h1><p>READY 與 PARTIAL_READY 均可取得正式排名；部分歷史標的只使用真實可用期間重新計算權重。</p></div><div class="result-meta" id="rankingCount"></div></div>
 <article class="panel no-top">
 <div class="toolbar">
-<div class="search-field"><span>⌕</span><input id="rankSearch" placeholder="搜尋 Ticker / 公司 / 子產業"/></div>
-<select id="rankModel"></select>
-<select id="rankScale"><option value="formal">正式尺度</option><option value="comparable">跨產業可比尺度</option></select>
-<select id="rankStatus"><option value="ALL">全部狀態</option><option value="READY">READY</option><option value="NOT_DUE">NOT_DUE</option></select>
-<select id="rankIndustry"><option value="ALL">全部子產業</option></select>
+<div class="search-field"><span>⌕</span><input aria-label="搜尋排名" id="rankSearch" placeholder="搜尋股票代號 / 公司 / 產業"/></div>
+<select aria-label="排名模型" id="rankModel"></select>
+<select aria-label="排名尺度" id="rankScale"><option value="formal">正式尺度</option><option value="comparable">跨產業可比尺度</option></select>
+<select aria-label="資料狀態" id="rankStatus"><option value="ALL">全部狀態</option><option value="READY">完整可評分（READY）</option><option value="PARTIAL_READY">部分歷史可評分（PARTIAL_READY）</option><option value="NOT_DUE">尚未到期（NOT_DUE）</option></select>
+<select aria-label="產業" id="rankIndustry"><option value="ALL">全部產業</option></select>
 <button class="btn secondary" id="rankReset">清除</button>
 <button class="btn primary" id="rankCsv">匯出 CSV</button>
 </div>
-<div class="table-wrap"><table class="data-table"><thead><tr>
-<th data-sort="rank">#</th><th data-sort="ticker">Ticker</th><th data-sort="company">公司</th><th data-sort="industry">子產業</th>
-<th class="num" data-sort="alpha">Alpha</th><th class="num" data-sort="momentum">Momentum</th><th class="num" data-sort="selection">Selection</th><th class="num" data-sort="divergence">模型分歧</th><th>狀態</th>
+<div class="table-wrap" role="region" aria-label="研究排名表格" tabindex="0"><table class="data-table ranking-table"><thead><tr>
+<th data-sort="rank">排名</th><th data-sort="ticker">股票代號</th><th data-sort="company">公司</th><th data-sort="industry">產業</th>
+<th class="num" data-sort="alpha">財務評分</th><th class="num" data-sort="momentum">價格動能</th><th class="num" data-sort="selection">綜合評分</th><th class="num" data-sort="divergence">模型分歧</th><th>資料狀態</th>
 </tr></thead><tbody id="rankingRows"></tbody></table></div>
 <div class="table-foot" id="rankingFoot"></div>
 </article>
 </section>
-<section class="view" id="technology"><div class="page-head"><div><span class="kicker">TECHNOLOGY</span><h1>科技股</h1><p>依正式 taxonomy 對科技相關標的建立研究視圖，不改寫模型分數。</p></div><div class="result-meta" id="techCount"></div></div><div id="technologyContent"></div></section>
-<section class="view" id="outside"><div class="page-head"><div><span class="kicker">OUTSIDE</span><h1>其他股</h1><p>非 Technology 研究視圖，使用相同五模型與跨產業可比尺度。</p></div><div class="result-meta" id="outsideCount"></div></div><div id="outsideContent"></div></section>
+<section class="view" id="technology"><div class="page-head"><div><span class="kicker">科技類股</span><h1>科技股</h1><p>依正式產業分類整理科技相關標的，不改寫模型分數。</p></div><div class="result-meta" id="techCount"></div></div><div id="technologyContent"></div></section>
+<section class="view" id="outside"><div class="page-head"><div><span class="kicker">非科技類股</span><h1>其他股</h1><p>非科技類股使用相同的五模型與跨產業可比尺度。</p></div><div class="result-meta" id="outsideCount"></div></div><div id="outsideContent"></div></section>
 <section class="view" id="models">
-<div class="page-head"><div><span class="kicker">MODEL LAB</span><h1>模型能力</h1><p>Balanced、Quality、Growth、Earnings Momentum、GARP 五套模型並行，不互相取代。</p></div></div>
+<div class="page-head"><div><span class="kicker">模型能力</span><h1>模型能力</h1><p>平衡型、品質型、成長型、盈餘動能型與 GARP 五套模型並行，不互相取代。</p></div></div>
 <div class="model-cards" id="modelCards"></div>
 <div class="grid-2 model-lab-grid">
 <article class="panel"><div class="panel-head"><div><h2>模型領先標的</h2><p>選一套模型查看 Top 15 與風格暴露。</p></div><select id="modelLabSelect"></select></div><div class="leader-list" id="modelTopList"></div></article>
@@ -67,28 +67,30 @@
 </div>
 </section>
 <section class="view" id="compare">
-<div class="page-head"><div><span class="kicker">COMPARE</span><h1>個股比較</h1><p>最多 4 檔橫向比較五模型、五因子、Momentum、Risk 與估值方法。</p></div><div class="result-meta" id="compareCounter">0 / 4</div></div>
-<article class="panel no-top"><div class="compare-picker"><div class="search-field"><span>⌕</span><input id="compareSearch" placeholder="輸入 Ticker / 公司名稱新增"/></div><div class="suggest" id="compareSuggest"></div><div class="chips" id="compareChips"></div></div></article>
+<div class="page-head"><div><span class="kicker">個股比較</span><h1>個股比較</h1><p>最多 4 檔橫向比較五模型、五因子、價格動能與估值方法；90 日風險資料尚未公開。</p></div><div class="result-meta" id="compareCounter">0 / 4</div></div>
+<article class="panel no-top"><div class="compare-picker"><div class="search-field"><span>⌕</span><input aria-label="新增比較股票" id="compareSearch" placeholder="輸入股票代號 / 公司名稱新增"/></div><div class="suggest" id="compareSuggest"></div><div class="chips" id="compareChips"></div></div></article>
 <div class="empty-state" id="compareEmpty"><strong>選擇 2–4 檔股票開始比較</strong><span>可以直接搜尋 MU、NVDA、TSM、LLY 等。</span></div>
 <div class="hidden" id="compareContent"></div>
 </section>
 <section class="view" id="portfolio">
-<div class="page-head"><div><span class="kicker">PORTFOLIO</span><h1>投資組合</h1><p>保留原版產品模組，但不把舊 Demo 持股或權重當成正式資料。</p></div></div>
-<article class="panel portfolio-empty"><div class="empty-icon">◎</div><h2>目前 Official Snapshot 沒有正式持倉 / Reserve 欄位</h2><p>目前正式資料只包含 <span data-universe-count>—</span> 檔動態研究母體與模型輸出，因此本頁不製造不存在的持股、權重或 Reserve 資料。未來正式配置資料接入後，本頁可直接恢復原本 Portfolio / Reserve 功能。</p><div class="portfolio-contract"><div><span>正式研究母體</span><b><span data-universe-count>—</span></b></div><div><span>正式持倉資料</span><b>尚未提供</b></div><div><span>正式 Reserve</span><b>尚未提供</b></div></div></article>
+<div class="page-head"><div><span class="kicker">投資組合</span><h1>投資組合</h1><p>保留產品入口，但不把舊版示範持股或權重當成正式資料。</p></div></div>
+<article class="panel portfolio-empty"><div class="empty-icon">◎</div><h2>目前正式快照沒有持倉或候選名單</h2><p>目前正式資料只包含 <span data-universe-count>—</span> 檔研究範圍與模型輸出，因此本頁不製造不存在的持股、權重或候選名單。未來正式配置資料接入後才會開放相關功能。</p><div class="portfolio-contract"><div><span>正式研究範圍</span><b><span data-universe-count>—</span></b></div><div><span>正式持倉資料</span><b>尚未提供</b></div><div><span>正式候選名單</span><b>尚未提供</b></div></div></article>
 </section>
 <section class="view" id="history">
-<div class="page-head"><div><span class="kicker">HISTORY</span><h1>歷史與本次更新</h1><p>歷史只使用 Official Market Key；同日 Revision 不新增歷史日期。</p></div></div><div id="historyContent"></div>
+<div class="page-head"><div><span class="kicker">歷史資料</span><h1>歷史與本次更新</h1><p>歷史只使用正式市場日期；同日修訂不會新增一個歷史日期。</p></div></div><div id="historyContent"></div>
 </section>
 <section class="view" id="audit">
-<div class="page-head"><div><span class="kicker">DATA AUDIT</span><h1>資料稽核</h1><p>公開研究層只顯示資料契約、覆蓋率與模型可用性，不顯示 GitHub / Collector 維運細節。</p></div></div>
+<div class="page-head"><div><span class="kicker">資料稽核</span><h1>資料稽核</h1><p>此頁顯示資料範圍、覆蓋率與產品功能可用狀態。</p></div></div>
 <div class="metric-row" id="auditMetrics"></div>
-<div class="grid-2"><article class="panel"><div class="panel-head"><div><h2>來源契約</h2><p>Freshness Manifest</p></div></div><div class="audit-list" id="auditSources"></div></article><article class="panel"><div class="panel-head"><div><h2>模型資料完整度</h2><p>五因子、Momentum、Risk、估值資料</p></div></div><div class="audit-list" id="auditCoverage"></div></article></div>
+<div class="grid-2"><article class="panel"><div class="panel-head"><div><h2>資料來源狀態</h2><p>各資料集的日期與覆蓋率</p></div></div><div class="audit-list" id="auditSources"></div></article><article class="panel"><div class="panel-head"><div><h2>模型資料完整度</h2><p>五因子、價格動能、風險與估值資料</p></div></div><div class="audit-list" id="auditCoverage"></div></article></div>
+<article class="panel"><div class="panel-head"><div><h2>功能可用狀態</h2><p>只列出目前正式快照實際提供的功能；未公開的資料不會假裝可用。</p></div></div><div id="capabilityMatrix"></div></article>
 </section>
 </main>
-<div class="backdrop" id="detailBackdrop"></div><aside aria-hidden="true" class="drawer" id="detailDrawer"><button class="drawer-close" id="detailClose">×</button><div id="detailContent"></div></aside>
-<div class="command-backdrop hidden" id="command"><div class="command-box"><div class="command-input"><span>⌕</span><input id="commandInput" placeholder="搜尋 Ticker、公司或子產業"/><kbd>Esc</kbd></div><div class="command-results" id="commandResults"></div></div></div>
+<div class="backdrop" id="detailBackdrop"></div><aside aria-hidden="true" aria-label="個股詳細資料" class="drawer" id="detailDrawer"><button aria-label="關閉個股詳細資料" class="drawer-close" id="detailClose">×</button><div id="detailContent"></div></aside>
+<div class="command-backdrop hidden" id="command"><div class="command-box"><div class="command-input"><span>⌕</span><input aria-label="全站搜尋" id="commandInput" placeholder="搜尋股票代號、公司或產業"/><kbd>Esc</kbd></div><div class="command-results" id="commandResults"></div></div></div>
 
 <script src="contract-bootstrap.js"></script>
 <script src="app.js"></script>
 <script src="contract-guard.js"></script>
+<script src="product-closure.js"></script>
 </body></html>
