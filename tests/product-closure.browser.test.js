@@ -62,6 +62,15 @@ async function addCompare(page, ticker) {
     assert.match(await page.locator('#detailContent').innerText(), /新上市/);
     await page.locator('#detailClose').click();
 
+    await page.locator('#mainNav [data-view="models"]').click();
+    assert.equal(await page.locator('#modelCards .model-card').count(), 5);
+    assert.equal(await page.locator('#modelTopList .leader-row').count(), 15);
+
+    await page.locator('#mainNav [data-view="rankings"]').click();
+    await page.locator('#rankStatus').selectOption('PARTIAL_READY');
+    await page.locator('#rankScale').selectOption('comparable');
+    assert.equal(await page.locator('#rankingRows tr[data-ticker]').count(), 12);
+
     await page.locator('#rankStatus').selectOption('NOT_DUE');
     assert.equal(await page.locator('#rankingRows tr[data-ticker]').count(), 6);
     assert.equal(await page.locator('#rankingRows [data-status="NOT_DUE"]').count(), 6);
