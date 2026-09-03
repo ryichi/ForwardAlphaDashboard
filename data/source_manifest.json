@@ -1,11 +1,11 @@
 {
-  "schema_version": 2,
-  "market_key": "2026-09-01",
-  "mode": "static-public-repo",
+  "schema_version": 3,
+  "market_key": "2026-09-02",
+  "mode": "generated-from-production-xlsx",
   "sources": [
     {
       "dataset": "universe_web",
-      "as_of": "2026-09-01",
+      "as_of": "2026-09-02",
       "freshness_status": "VALID",
       "coverage": 1.0,
       "cadence": "market snapshot",
@@ -13,51 +13,51 @@
     },
     {
       "dataset": "price_momentum",
-      "as_of": "2026-09-01",
-      "freshness_status": "VALID",
-      "coverage": 1.0,
-      "full_history_coverage": 0.9704081632653061,
+      "as_of": "2026-09-02",
+      "freshness_status": "PARTIAL_VALID",
+      "coverage": 0.9935965848452508,
+      "full_history_coverage": 0.9807897545357525,
       "cadence": "each completed US trading day",
-      "freshness_rule": "production momentum score is authoritative; partial real history may be renormalized"
+      "freshness_rule": "Authoritative readiness sidecar gates Production Momentum; PARTIAL_READY renormalizes only real due horizons; NOT_DUE/UNRESOLVED expose no score"
     },
     {
       "dataset": "current_forward_pe",
-      "as_of": "2026-09-01",
+      "as_of": "2026-09-02",
       "freshness_status": "PARTIAL_VALID",
-      "coverage": 0.23673469387755103,
-      "available_count": 232,
-      "universe_count": 980,
+      "coverage": 0.9626467449306296,
+      "available_count": 902,
+      "universe_count": 937,
       "cadence": "valuation watcher",
-      "freshness_rule": "missing Current Forward P/E does not remove Active Universe members"
+      "freshness_rule": "Missing Current Forward P/E does not remove Active Universe members"
     },
     {
       "dataset": "comparison_metrics",
-      "as_of": "2026-09-01",
+      "as_of": "2026-09-02",
       "freshness_status": "PARTIAL_VALID",
-      "coverage": 0.6051020408163266,
-      "available_count": 593,
+      "coverage": 0.9690501600853789,
+      "available_count": 908,
       "factor_coverage": 1.0,
       "cadence": "provider change / model refresh",
-      "freshness_rule": "valuation factor remains production output even when component multiples are not all exposed in XLSX"
+      "freshness_rule": "Valuation factor remains Production output even when component multiples are not all exposed"
     },
     {
       "dataset": "earnings_revision",
-      "as_of": "2026-09-01",
+      "as_of": "2026-09-02",
       "freshness_status": "PARTIAL_VALID",
-      "coverage": 0.9469387755102041,
-      "available_count": 928,
+      "coverage": 0.9935965848452508,
+      "available_count": 931,
       "factor_coverage": 1.0,
       "cadence": "provider change",
-      "freshness_rule": "raw revision coverage is dataset-level; factor fallback does not change Universe membership"
+      "freshness_rule": "Raw revision coverage is dataset-level; Production factor is authoritative"
     },
     {
       "dataset": "risk_90d",
-      "as_of": "2026-09-01",
+      "as_of": "2026-09-02",
       "freshness_status": "NOT_EXPOSED",
       "coverage": 0.0,
       "available_count": 0,
       "cadence": "model refresh",
-      "freshness_rule": "REPORT_ONLY; absence from this XLSX export is not a Universe gate"
+      "freshness_rule": "REPORT_ONLY; absence is not a Universe gate"
     }
   ]
 }
