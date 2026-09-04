@@ -23,6 +23,12 @@ assert(index.includes('value="PARTIAL_READY"'), 'PARTIAL_READY filter is missing
 assert(!index.includes('Momentum、Risk 與估值方法'), 'Compare still promises unpublished Risk capability');
 assert(index.includes('90 日風險資料尚未公開'), 'Compare does not disclose unavailable Risk capability');
 assert(index.includes('id="capabilityMatrix"'), 'Capability Matrix mount is missing');
+assert(index.includes('id="factorGuideTitle"'), 'five-factor explanation is missing');
+assert(index.includes('不構成投資建議'), 'factor explanation investment boundary is missing');
+for (const label of ['獲利能力', '財務穩健', '前瞻成長', '盈餘修正', '相對估值']) {
+  assert(index.includes(`<b>${label}</b>`), `${label} explanation is missing`);
+}
+assert(!index.includes('原始 ROE') && !index.includes('原始 EBITDA'), 'factor guide claims unpublished raw metrics');
 
 assert(!/decodeSitePayload\s*=/.test(closure), 'UI closure must not replace the authoritative decoder');
 assert(!/assignRanks\s*=/.test(closure), 'UI closure must not replace ranking eligibility rules');
@@ -33,6 +39,7 @@ assert(closure.includes('data-capability-status'), 'Capability Matrix status con
 assert(closure.includes('90 日風險：尚未公開'), 'Risk unavailable state is missing from Compare');
 assert(styles.includes('@media(max-width:760px)'), 'small-screen rules are missing');
 assert(styles.includes('.ranking-table th:first-child'), 'mobile sticky ranking columns are missing');
+assert(styles.includes('.factor-guide-grid'), 'factor explanation layout is missing');
 
 assert.equal(meta.schema_version, 5);
 assert.equal(records.length, 937);

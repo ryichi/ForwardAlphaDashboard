@@ -34,6 +34,41 @@ async function addCompare(page, ticker) {
   await page.locator(`[data-add="${ticker}"]`).click();
 }
 
+function parseCsv(buffer) {
+  assert.deepEqual([...buffer.subarray(0, 3)], [0xef, 0xbb, 0xbf], 'CSV UTF-8 BOM missing');
+  const text = buffer.subarray(3).toString('utf8');
+  return text.split(/\r?\n/).filter(Boolean).map(line => {
+    const cells = [];
+    let index = 0;
+    while (index < line.length) {
+      assert.equal(line[index], '"', `CSV field must start with a quote: ${line}`);
+      index += 1;
+      let value = '';
+      while (index < line.length) {
+        if (line[index] !== '"') {
+          value += line[index++];
+        } else if (line[index + 1] === '"') {
+          value += '"';
+          index += 2;
+        } else {
+          index += 1;
+          break;
+        }
+      }
+      cells.push(value);
+      if (line[index] === ',') index += 1;
+    }
+    return cells;
+  });
+}
+
+async function downloadCsv(page) {
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#rankCsv').click();
+  const download = await downloadPromise;
+  return { filename: download.suggestedFilename(), buffer: fs.readFileSync(await download.path()) };
+}
+
 (async () => {
   const server = await startServer();
   const address = server.address();
@@ -41,7 +76,11 @@ async function addCompare(page, ticker) {
   let browser;
   const errors = [];
   try {
-    browser = await chromium.launch({ headless: true });
+    const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+    browser = await chromium.launch({
+      headless: true,
+      ...(executablePath ? { executablePath, args: ['--no-sandbox', '--disable-setuid-sandbox'] } : {})
+    });
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
     page.on('pageerror', error => errors.push(error.message));
@@ -65,11 +104,27 @@ async function addCompare(page, ticker) {
     await page.locator('#mainNav [data-view="models"]').click();
     assert.equal(await page.locator('#modelCards .model-card').count(), 5);
     assert.equal(await page.locator('#modelTopList .leader-row').count(), 15);
+    const factorGuide = await page.locator('.factor-guide').innerText();
+    for (const label of ['獲利能力', '財務穩健', '前瞻成長', '盈餘修正', '相對估值']) assert.match(factorGuide, new RegExp(label));
+    assert.match(factorGuide, /分數越高/);
+    assert.match(factorGuide, /不構成投資建議/);
 
     await page.locator('#mainNav [data-view="rankings"]').click();
     await page.locator('#rankStatus').selectOption('PARTIAL_READY');
     await page.locator('#rankScale').selectOption('comparable');
     assert.equal(await page.locator('#rankingRows tr[data-ticker]').count(), 12);
+
+    const partialDownload = await downloadCsv(page);
+    assert.match(partialDownload.filename, /^ForwardAlpha_研究排名_2026-09-02\.csv$/);
+    const partialCsv = parseCsv(partialDownload.buffer);
+    assert.deepEqual(partialCsv[0], ['排名', '股票代號', '公司', '產業', '財務評分', '價格動能', '綜合評分', '模型分歧', '資料狀態', '狀態說明', '有效價格期間', '資料日期', '快照代號', '排名尺度', '模型']);
+    assert.equal(partialCsv.length, 13);
+    for (const row of partialCsv.slice(1)) {
+      assert(row[0], `${row[1]} PARTIAL_READY rank missing from CSV`);
+      assert.equal(row[8], 'PARTIAL_READY');
+      assert(row[9], `${row[1]} PARTIAL_READY reason missing from CSV`);
+      assert(row[10], `${row[1]} PARTIAL_READY horizon missing from CSV`);
+    }
 
     await page.locator('#rankStatus').selectOption('NOT_DUE');
     assert.equal(await page.locator('#rankingRows tr[data-ticker]').count(), 6);
@@ -78,6 +133,17 @@ async function addCompare(page, ticker) {
     for (const text of await page.locator('#rankingRows tr[data-ticker]').allInnerTexts()) {
       assert.match(text, /尚未評分/);
       assert.match(text, /尚未形成正式排名/);
+    }
+    const notDueDownload = await downloadCsv(page);
+    assert.match(notDueDownload.filename, /^ForwardAlpha_研究排名_2026-09-02\.csv$/);
+    const notDueCsv = parseCsv(notDueDownload.buffer);
+    assert.equal(notDueCsv.length, 7);
+    for (const row of notDueCsv.slice(1)) {
+      assert.equal(row[0], '', `${row[1]} NOT_DUE rank leaked to CSV`);
+      for (const index of [4, 5, 6, 7]) assert.equal(row[index], '', `${row[1]} NOT_DUE score leaked to CSV column ${index}`);
+      assert.equal(row[8], 'NOT_DUE');
+      assert(row[9], `${row[1]} NOT_DUE reason missing from CSV`);
+      assert.equal(row[10], '');
     }
 
     await page.locator('#mainNav [data-view="compare"]').click();
@@ -113,6 +179,7 @@ async function addCompare(page, ticker) {
     if (screenshotDir) {
       fs.mkdirSync(screenshotDir, { recursive: true });
       await page.locator('#detailClose').click();
+      await page.waitForTimeout(250);
       await page.locator('#mainNav [data-view="rankings"]').click();
       await page.locator('#rankStatus').selectOption('PARTIAL_READY');
       await page.screenshot({ path: path.join(screenshotDir, 'work-b-desktop-rankings.png'), fullPage: true });
@@ -131,20 +198,47 @@ async function addCompare(page, ticker) {
       documentWidth: document.documentElement.scrollWidth,
       tableClient: document.querySelector('#rankings .table-wrap').clientWidth,
       tableScroll: document.querySelector('#rankings .table-wrap').scrollWidth,
-      tickerPosition: getComputedStyle(document.querySelector('.ranking-table td:nth-child(2)')).position
+      tickerPosition: getComputedStyle(document.querySelector('.ranking-table td:nth-child(2)')).position,
+      navTarget: document.querySelector('#mainNav button').getBoundingClientRect().height,
+      inputTarget: document.querySelector('#rankSearch').getBoundingClientRect().height,
+      selectTarget: document.querySelector('#rankStatus').getBoundingClientRect().height,
+      buttonTarget: document.querySelector('#rankReset').getBoundingClientRect().height
     }));
     assert(dimensions.documentWidth <= dimensions.viewport, `mobile document overflows: ${JSON.stringify(dimensions)}`);
     assert(dimensions.tableScroll > dimensions.tableClient, 'ranking table should scroll inside its own region');
     assert.equal(dimensions.tickerPosition, 'sticky');
+    for (const key of ['navTarget', 'inputTarget', 'selectTarget', 'buttonTarget']) {
+      assert(dimensions[key] >= 42, `${key} is below 42px: ${JSON.stringify(dimensions)}`);
+    }
     await mobile.locator('#rankingRows tr[data-ticker]').first().click();
     await mobile.locator('#detailDrawer.open').waitFor();
-    const drawerWidth = await mobile.locator('#detailDrawer').evaluate(element => element.getBoundingClientRect().width);
-    assert(drawerWidth <= dimensions.viewport);
+    await mobile.waitForTimeout(250);
+    const drawerBounds = await mobile.locator('#detailDrawer').evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width };
+    });
+    assert(drawerBounds.width <= dimensions.viewport, `detail drawer width overflows: ${JSON.stringify({ drawerBounds, viewport: dimensions.viewport })}`);
+    assert(drawerBounds.left >= 0 && drawerBounds.right <= dimensions.viewport, `detail drawer position overflows: ${JSON.stringify({ drawerBounds, viewport: dimensions.viewport })}`);
+    const closeTarget = await mobile.locator('#detailClose').evaluate(element => element.getBoundingClientRect().height);
+    assert(closeTarget >= 44, `detail close target is below 44px: ${closeTarget}`);
     if (process.env.SCREENSHOT_DIR) {
-      await mobile.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, 'work-b-mobile-detail.png'), fullPage: true });
+      await mobile.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, 'work-b-mobile-detail.png') });
     }
     assert.deepEqual(errors, []);
-    console.log('product closure browser tests OK');
+    console.log(JSON.stringify({
+      status: 'PASS',
+      desktop: { records: 937, partialReady: 12, notDue: 6, models: 5, modelLeaders: 15 },
+      csv: {
+        filename: partialDownload.filename,
+        utf8Bom: true,
+        chineseHeaders: true,
+        partialReadyRows: partialCsv.length - 1,
+        notDueRows: notDueCsv.length - 1,
+        notDueFormalScoresBlank: true
+      },
+      mobile: { ...dimensions, drawerBounds, closeTarget },
+      consoleAndPageErrors: errors.length
+    }, null, 2));
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

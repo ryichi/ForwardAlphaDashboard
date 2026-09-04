@@ -62,9 +62,16 @@
 .side-card h3,.detail-section h3{font-size:15px}
 .model-card h3,.detail-box b{font-size:16px}
 .command-input input{font-size:15px}
+.factor-guide{margin-top:12px}
+.factor-guide-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:14px 16px 10px}
+.factor-guide-grid>div{display:grid;gap:6px;padding:12px;background:var(--surface2);border:1px solid var(--line2);border-radius:7px}
+.factor-guide-grid b{font-size:14px}
+.factor-guide-grid span,.factor-disclaimer{font-size:13px;line-height:1.65;color:var(--muted)}
+.factor-disclaimer{margin:0;padding:0 17px 16px}
 
 @media(max-width:1100px){
   .pool-summary{grid-template-columns:repeat(3,1fr)}
+  .factor-guide-grid{grid-template-columns:repeat(3,1fr)}
 }
 
 @media(max-width:760px){
@@ -90,6 +97,7 @@
   .model-detail-row{grid-template-columns:100px 1fr 68px 68px}
   .model-detail-row.unavailable{grid-template-columns:100px 1fr}
   .capability-wrap{width:calc(100vw - 24px)}
+  .factor-guide-grid{grid-template-columns:1fr 1fr}
 }
 
 @media(max-width:480px){
@@ -99,4 +107,5 @@
   .model-detail-row .bar{display:none}
   .model-detail-row.unavailable{grid-template-columns:1fr}
   .capability-table{min-width:720px}
+  .factor-guide-grid{grid-template-columns:1fr}
 }
