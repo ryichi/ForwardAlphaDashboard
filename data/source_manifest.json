@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "market_key": "2026-09-02",
+  "market_key": "2026-09-03",
   "mode": "generated-from-production-xlsx",
   "sources": [
     {
       "dataset": "universe_web",
-      "as_of": "2026-09-02",
+      "as_of": "2026-09-03",
       "freshness_status": "VALID",
       "coverage": 1.0,
       "cadence": "market snapshot",
@@ -13,7 +13,7 @@
     },
     {
       "dataset": "price_momentum",
-      "as_of": "2026-09-02",
+      "as_of": "2026-09-03",
       "freshness_status": "PARTIAL_VALID",
       "coverage": 0.9935965848452508,
       "full_history_coverage": 0.9807897545357525,
@@ -22,7 +22,7 @@
     },
     {
       "dataset": "current_forward_pe",
-      "as_of": "2026-09-02",
+      "as_of": "2026-09-03",
       "freshness_status": "PARTIAL_VALID",
       "coverage": 0.9626467449306296,
       "available_count": 902,
@@ -32,7 +32,7 @@
     },
     {
       "dataset": "comparison_metrics",
-      "as_of": "2026-09-02",
+      "as_of": "2026-09-03",
       "freshness_status": "PARTIAL_VALID",
       "coverage": 0.9690501600853789,
       "available_count": 908,
@@ -42,7 +42,7 @@
     },
     {
       "dataset": "earnings_revision",
-      "as_of": "2026-09-02",
+      "as_of": "2026-09-03",
       "freshness_status": "PARTIAL_VALID",
       "coverage": 0.9935965848452508,
       "available_count": 931,
@@ -52,7 +52,7 @@
     },
     {
       "dataset": "risk_90d",
-      "as_of": "2026-09-02",
+      "as_of": "2026-09-03",
       "freshness_status": "NOT_EXPOSED",
       "coverage": 0.0,
       "available_count": 0,
