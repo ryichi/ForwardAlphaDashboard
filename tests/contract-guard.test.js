@@ -163,3 +163,18 @@ assert.throws(
 );
 
 console.log('contract guard tests OK');
+// Additive field-level contract must not change existing model status or scores.
+const extended = v5Row('AAA');
+extended.push({ev_ebitda:{value:null,source:'',source_as_of:'',checked_at:'',status:'MISSING',is_imputed:false}});
+extended.push({raw_acquisition_status:'SOURCE_GROUP_EXHAUSTED',model_ready:true,is_factor_imputed:true});
+const extended2=v5Row('BBB'); extended2.push({},{});
+const decodedFields=ctx.decodeSitePayload({...v5,records:[extended,extended2]},allReadySnapshot);
+const fieldRecord=decodedFields.data.records[0];
+assert.equal(fieldRecord.quality.model_status,'READY');
+assert.equal(fieldRecord.quality.raw_acquisition_status,'SOURCE_GROUP_EXHAUSTED');
+assert.equal(fieldRecord.quality.is_factor_imputed,true);
+assert.equal(fieldRecord.third_party_fields.ev_ebitda.value,null);
+assert.equal(fieldRecord.valuation.raw_status,'MISSING');
+assert.equal(fieldRecord.valuation.source_as_of,'');
+assert.equal(decodedFields.official.records[0][9],10);
+console.log('field provenance decoder tests OK');

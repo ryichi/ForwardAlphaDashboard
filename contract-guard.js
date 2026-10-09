@@ -108,6 +108,17 @@
       }
     };
     if (schema === 5) record._comparableNote = String(row[45] || '');
+    if (schema === 5 && row.length >= 52) {
+      record.third_party_fields = row[50] || {};
+      record.quality.raw_source_quality = row[51] || {};
+      record.quality.raw_acquisition_status = record.quality.raw_source_quality.raw_acquisition_status || 'UNKNOWN';
+      record.quality.is_factor_imputed = Boolean(record.quality.raw_source_quality.is_factor_imputed);
+      // A model can be READY while a raw source group is exhausted or Missing.
+      record.valuation.raw_status = record.third_party_fields.ev_ebitda?.status || 'UNKNOWN';
+      record.valuation.source_as_of = record.third_party_fields.ev_ebitda?.source_as_of || '';
+      record.valuation.checked_at = record.third_party_fields.ev_ebitda?.checked_at || '';
+    }
+
 
     const official = schema === 5
       ? [
