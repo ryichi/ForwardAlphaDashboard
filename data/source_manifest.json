@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "market_key": "2026-10-09",
+  "market_key": "2026-10-12",
   "mode": "generated-from-production-xlsx",
   "sources": [
     {
       "dataset": "universe_web",
-      "as_of": "2026-10-09",
+      "as_of": "2026-10-12",
       "freshness_status": "VALID",
       "coverage": 1.0,
       "cadence": "market snapshot",
@@ -13,20 +13,20 @@
     },
     {
       "dataset": "price_momentum",
-      "as_of": "2026-10-09",
+      "as_of": "2026-10-12",
       "freshness_status": "PARTIAL_VALID",
-      "coverage": 0.9978189749182116,
-      "full_history_coverage": 0.9792802617230099,
+      "coverage": 0.9989165763813651,
+      "full_history_coverage": 0.9794149512459371,
       "cadence": "each completed US trading day",
       "freshness_rule": "Authoritative readiness sidecar gates Production Momentum; PARTIAL_READY renormalizes only real due horizons; NOT_DUE/UNRESOLVED expose no score"
     },
     {
       "dataset": "current_forward_pe",
-      "as_of": "2026-10-09",
+      "as_of": "2026-10-12",
       "freshness_status": "PARTIAL_VALID",
-      "coverage": 0.9618320610687023,
-      "available_count": 882,
-      "universe_count": 917,
+      "coverage": 0.9599133261105092,
+      "available_count": 886,
+      "universe_count": 923,
       "cadence": "valuation watcher",
       "freshness_rule": "Missing Current Forward P/E does not remove Active Universe members"
     },
@@ -34,8 +34,8 @@
       "dataset": "comparison_metrics",
       "as_of": "",
       "freshness_status": "PARTIAL_VALID",
-      "coverage": 0.9760087241003271,
-      "available_count": 895,
+      "coverage": 0.9739978331527628,
+      "available_count": 899,
       "factor_coverage": 1.0,
       "cadence": "provider change / model refresh",
       "freshness_rule": "Field-level source dates and checks required; Snapshot date is not raw source date",
@@ -94,27 +94,27 @@
         "2026-09-03",
         "2026-09-16",
         "2026-09-30",
-        "2026-10-09"
+        "2026-10-12"
       ],
-      "verified_field_count": 6631,
-      "field_count": 9170
+      "verified_field_count": 6670,
+      "field_count": 9230
     },
     {
       "dataset": "earnings_revision",
       "as_of": "",
       "freshness_status": "UNKNOWN",
-      "coverage": 0.9934569247546347,
-      "available_count": 911,
+      "coverage": 0.9934994582881906,
+      "available_count": 917,
       "factor_coverage": 1.0,
       "cadence": "provider change",
       "freshness_rule": "Field-level source dates and checks required; Snapshot date is not raw source date",
       "source_as_of_dates": [],
       "verified_field_count": 0,
-      "field_count": 1834
+      "field_count": 1846
     },
     {
       "dataset": "risk_90d",
-      "as_of": "2026-10-09",
+      "as_of": "2026-10-12",
       "freshness_status": "NOT_EXPOSED",
       "coverage": 0.0,
       "available_count": 0,
