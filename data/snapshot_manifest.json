@@ -31,5 +31,7 @@
   "source_snapshot_payload_sha256": "ff69811a7cad9495901c0a3c2aefdb63983d460bde8edabf10dce54a4ab1bff6",
   "source_base_xlsx": "ForwardAlpha_Result_2026-10-15_SNAP_20261015_eb916534c836_ff69811a7cad.xlsx",
   "source_base_xlsx_sha256": "8029b13fbcefe05415dfdbfee1267b02e107f839673a7f140ff5aabf35b8405c",
-  "source_run": 38852322674
+  "source_readable_xlsx": "ForwardAlpha_Result_latest.xlsx",
+  "source_readable_xlsx_sha256": "11733ecead8f2a0e6e1dc9ef5670a96f77e5e66961cd7baf7c3654ac3ae26a7f",
+  "readability_derived_from_sha256": "8029b13fbcefe05415dfdbfee1267b02e107f839673a7f140ff5aabf35b8405c"
 }
